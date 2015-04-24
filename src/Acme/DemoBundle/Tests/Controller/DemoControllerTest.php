@@ -10,36 +10,28 @@ class DemoControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/demo/hello/Fabien');
+        $client->request('GET', '/list?width=200&height=200&bgColor=3b73fc&textColor=00ff00');
+        $client->getResponse();
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
 
-        $this->assertGreaterThan(0, $crawler->filter('html:contains("Hello Fabien")')->count());
-    }
+        $client->request('GET', '/list?width=50&height=200&bgColor=3b73fc&textColor=00ff00');
+        $client->getResponse();
+        $this->assertEquals(404, $client->getResponse()->getStatusCode());
 
-    public function testSecureSection()
-    {
-        $client = static::createClient();
+        $client->request('GET', '/list?width=200&height=1000&bgColor=3b73fc&textColor=00ff00');
+        $client->getResponse();
+        $this->assertEquals(404, $client->getResponse()->getStatusCode());
 
-        // goes to the secure page
-        $crawler = $client->request('GET', '/demo/secured/hello/World');
+        $client->request('GET', '/list?width=200&height=200&bgColor=3b73fc');
+        $client->getResponse();
+        $this->assertEquals(404, $client->getResponse()->getStatusCode());
 
-        // redirects to the login page
-        $crawler = $client->followRedirect();
+        $client->request('GET', '/list?width=200&height=200');
+        $client->getResponse();
+        $this->assertEquals(404, $client->getResponse()->getStatusCode());
 
-        // submits the login form
-        $form = $crawler->selectButton('Login')->form(array('_username' => 'admin', '_password' => 'adminpass'));
-        $client->submit($form);
-
-        // redirect to the original page (but now authenticated)
-        $crawler = $client->followRedirect();
-
-        // check that the page is the right one
-        $this->assertCount(1, $crawler->filter('h1.title:contains("Hello World!")'));
-
-        // click on the secure link
-        $link = $crawler->selectLink('Hello resource secured')->link();
-        $crawler = $client->click($link);
-
-        // check that the page is the right one
-        $this->assertCount(1, $crawler->filter('h1.title:contains("secured for Admins only!")'));
+        $client->request('GET', '/list?width=200');
+        $client->getResponse();
+        $this->assertEquals(404, $client->getResponse()->getStatusCode());
     }
 }
